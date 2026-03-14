@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum FileStatus {
+  UPLOADING
+  UPLOADED
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+model Agent {
+  id                String          @id @default(cuid())
+  name              String          @unique
+  description       String          @default("")
+  model             String          @default("moonshotai/kimi-k2")
+  instructions      String          @default("")
+  isActive          Boolean         @default(true)
+  avatar            String          @default("Bot")
+  color             String          @default("#6366f1")
+  samplingConfig    Json
+  swarmConfig       Json
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  functions         AgentFunction[]
+  activeChats       Chat[]          @relation("ActiveAgentChats")
+}
+
+model AgentFunction {
+  id            String @id @default(cuid())
+  agentId       String
+  name          String
+  description   String
+  parameters    Json
+  implementation String
+  isHandoff     Boolean @default(false)
+  handoffTarget String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+}
+
+model Chat {
+  id            String    @id @default(cuid())
+  title         String
+  activeAgentId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  messages      Message[]
+
+  activeAgent Agent? @relation("ActiveAgentChats", fields: [activeAgentId], references: [id], onDelete: SetNull)
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  chatId     String
+  role       String
+  content    String
+  agent      String?
+  agentColor String?
+  timestamp  DateTime @default(now())
+  attachments Json?
+  toolCalls   Json?
+  metadata    Json?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, timestamp])
+}
+
+model FileRecord {
+  id           String     @id @default(cuid())
+  fileName     String
+  originalName String
+  mimeType     String
+  size         BigInt
+  extension    String
+  path         String
+  status       FileStatus @default(UPLOADING)
+  metadata     Json?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Setting {
+  id                       String   @id @default("global")
+  openRouterApiKey         String?
+  openRouterBaseUrl        String   @default("https://openrouter.ai/api/v1")
+  httpReferer              String   @default("http://localhost:3000")
+  xTitle                   String   @default("KIMI Swarm Chat Service")
+  timeoutMs                Int      @default(60000)
+  retryCount               Int      @default(3)
+  retryDelayMs             Int      @default(1000)
+  defaultModel             String   @default("moonshotai/kimi-k2")
+  defaultSamplingConfig    Json
+  defaultSwarmConfig       Json
+  fileProcessingConfig     Json
+  interfaceConfig          Json
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
