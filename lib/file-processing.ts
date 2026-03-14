@@ -56,15 +56,21 @@ async function sampleTextFile(filePath: string, size: number, samplingBytes: num
 }
 
 async function extractPdfText(filePath: string) {
-  const pdfParse = (await import("pdf-parse")).default;
-  const buffer = await readFile(filePath);
-  const parsed = await pdfParse(buffer);
-  return parsed.text.trim();
+  const { PDFParse } = await import("pdf-parse");
+  const buffer = Buffer.from(await readFile(filePath));
+  const parser = new PDFParse({ data: buffer });
+
+  try {
+    const parsed = await parser.getText();
+    return parsed.text.trim();
+  } finally {
+    await parser.destroy();
+  }
 }
 
 async function extractDocxText(filePath: string) {
   const mammoth = await import("mammoth");
-  const buffer = await readFile(filePath);
+  const buffer = Buffer.from(await readFile(filePath));
   const parsed = await mammoth.extractRawText({ buffer });
   return parsed.value.trim();
 }
@@ -72,7 +78,7 @@ async function extractDocxText(filePath: string) {
 async function extractSpreadsheetPreview(filePath: string) {
   const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
-  const buffer = await readFile(filePath);
+  const buffer = Buffer.from(await readFile(filePath));
   await workbook.xlsx.load(buffer);
 
   const lines: string[] = [];

@@ -2,6 +2,7 @@ import { createReadStream, createWriteStream } from "node:fs";
 import { access, mkdir, readdir, rm, unlink } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
+import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 import { randomUUID } from "node:crypto";
 
@@ -155,7 +156,7 @@ export async function writeUploadChunk(uploadId: string, partNumber: number, bod
   const tempDirectory = path.join(uploadsTempRoot, uploadId);
   await mkdir(tempDirectory, { recursive: true });
   const partPath = path.join(tempDirectory, `${partNumber}.part`);
-  const nodeReadable = Readable.fromWeb(body as globalThis.ReadableStream<Uint8Array>);
+  const nodeReadable = Readable.fromWeb(body as unknown as NodeReadableStream);
 
   await new Promise<void>((resolve, reject) => {
     const writer = createWriteStream(partPath);
