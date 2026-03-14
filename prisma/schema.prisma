@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Agent {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String   @default("")
+  model       String   @default("moonshotai/kimi-k2")
+  instructions String  @default("")
+  isActive    Boolean  @default(true)
+  avatar      String   @default("bot")
+  color       String   @default("#6366f1")
+
+  temperature       Float   @default(1.0)
+  topP              Float   @default(1.0)
+  topK              Int     @default(0)
+  frequencyPenalty  Float   @default(0.0)
+  presencePenalty   Float   @default(0.0)
+  repetitionPenalty Float   @default(1.0)
+  minP              Float   @default(0.0)
+  topA              Float   @default(0.0)
+  maxTokens         Int     @default(4096)
+  seed              Int?
+  stop              String  @default("[]")
+  responseFormat    String  @default("text")
+
+  maxTurns          Int     @default(0)
+  executeTools      Boolean @default(true)
+  stream            Boolean @default(true)
+  debug             Boolean @default(false)
+  contextVariables  String  @default("{}")
+  handoffTargets    String  @default("[]")
+  handoffConditions String  @default("")
+  toolChoice        String  @default("auto")
+  parallelToolCalls Boolean @default(true)
+
+  functions   AgentFunction[]
+  messages    Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgentFunction {
+  id             String  @id @default(uuid())
+  name           String
+  description    String  @default("")
+  parameters     String  @default("{}")
+  implementation String  @default("")
+  isHandoff      Boolean @default(false)
+  handoffTarget  String?
+
+  agentId String
+  agent   Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Chat {
+  id       String    @id @default(uuid())
+  title    String    @default("New Chat")
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  role        String
+  content     String
+  agentId     String?
+  agent       Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  agentName   String?
+  agentColor  String?
+  chatId      String
+  chat        Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  attachments String   @default("[]")
+  toolCalls   String   @default("[]")
+  metadata    String   @default("{}")
+
+  createdAt DateTime @default(now())
+}
+
+model FileRecord {
+  id            String   @id @default(uuid())
+  name          String
+  originalName  String
+  mimeType      String
+  size          Int
+  path          String
+  status        String   @default("pending")
+  processedText String?
+  metadata      String   @default("{}")
+  chatId        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Settings {
+  id    String @id @default("global")
+  key   String @unique
+  value String
+}
