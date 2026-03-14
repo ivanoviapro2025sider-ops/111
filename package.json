@@ -3,13 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "npx prisma generate && next build",
-    "start": "next start",
+    "dev": "DATABASE_URL=file:./dev.db node server.js",
+    "dev:next": "DATABASE_URL=file:./dev.db next dev",
+    "build": "DATABASE_URL=file:./dev.db npx prisma generate && next build",
+    "start": "DATABASE_URL=file:./dev.db next start",
+    "server": "DATABASE_URL=file:./dev.db node server.js",
+    "prod": "NODE_ENV=production npm run build && NODE_ENV=production DATABASE_URL=file:./dev.db node server.js",
+    "setup": "bash scripts/setup.sh",
     "lint": "next lint",
-    "db:push": "npx prisma db push",
-    "db:studio": "npx prisma studio",
+    "db:push": "DATABASE_URL=file:./dev.db npx prisma db push",
+    "db:studio": "DATABASE_URL=file:./dev.db npx prisma studio",
     "db:generate": "npx prisma generate",
+    "db:seed": "DATABASE_URL=file:./dev.db node scripts/seed.js",
     "postinstall": "npx prisma generate"
   },
   "dependencies": {
