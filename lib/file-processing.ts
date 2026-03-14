@@ -79,7 +79,10 @@ async function extractSpreadsheetPreview(filePath: string) {
   const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   const buffer = Buffer.from(await readFile(filePath));
-  await workbook.xlsx.load(buffer as any);
+  const loadWorkbook = workbook.xlsx.load.bind(workbook.xlsx);
+  type WorkbookLoadBuffer = Parameters<typeof loadWorkbook>[0];
+  const loadBuffer = buffer as unknown as WorkbookLoadBuffer;
+  await loadWorkbook(loadBuffer);
 
   const lines: string[] = [];
 

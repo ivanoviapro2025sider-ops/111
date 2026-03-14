@@ -10,6 +10,17 @@ type Message = {
   meta?: ChatResult;
 };
 
+type HealthStatus = {
+  status: "ok";
+  service: string;
+  configured: {
+    openRouterApiKey: boolean;
+  };
+  runtime: {
+    storage: string;
+  };
+};
+
 const fallbackSettings: Settings = {
   openRouter: {
     apiKey: "",
@@ -98,25 +109,34 @@ export function Dashboard() {
   const [isUploading, setIsUploading] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [health, setHealth] = useState<HealthStatus | null>(null);
 
   const selectedUploads = useMemo(
     () => uploads.filter((upload) => selectedUploadIds.includes(upload.id)),
     [selectedUploadIds, uploads]
   );
+  const isConfigured = settings.openRouter.apiKey.trim().length > 0;
 
   useEffect(() => {
     async function bootstrap() {
       try {
-        const [settingsResponse, uploadsResponse] = await Promise.all([
+        const [settingsResponse, uploadsResponse, healthResponse] = await Promise.all([
           fetch("/api/settings", { cache: "no-store" }),
-          fetch("/api/uploads", { cache: "no-store" })
+          fetch("/api/uploads", { cache: "no-store" }),
+          fetch("/api/health", { cache: "no-store" })
         ]);
 
         const nextSettings = await parseJsonResponse<Settings>(settingsResponse);
         const nextUploads = await parseJsonResponse<UploadRecord[]>(uploadsResponse);
+        const nextHealth = await parseJsonResponse<HealthStatus>(healthResponse);
         setSettings(nextSettings);
         setUploads(nextUploads);
-        setInfo("Ready.");
+        setHealth(nextHealth);
+        setInfo(
+          nextHealth.configured.openRouterApiKey
+            ? "Service is online and ready."
+            : "Service is online. Add and save your OpenRouter API key to enable chat."
+        );
       } catch (error) {
         setInfo(error instanceof Error ? error.message : "Failed to load dashboard state.");
       }
@@ -177,7 +197,22 @@ export function Dashboard() {
       });
       const payload = await parseJsonResponse<Settings>(response);
       setSettings(payload);
-      setInfo("Settings saved.");
+      setHealth((current) =>
+        current
+          ? {
+              ...current,
+              configured: {
+                ...current.configured,
+                openRouterApiKey: payload.openRouter.apiKey.trim().length > 0
+              }
+            }
+          : current
+      );
+      setInfo(
+        payload.openRouter.apiKey.trim()
+          ? "Settings saved. Swarm chat is enabled."
+          : "Settings saved. Add an OpenRouter API key to enable chat."
+      );
     } catch (error) {
       setInfo(error instanceof Error ? error.message : "Failed to save settings.");
     } finally {
@@ -251,6 +286,11 @@ export function Dashboard() {
   }
 
   async function runSwarm() {
+    if (!isConfigured) {
+      setInfo("Save a valid OpenRouter API key before running the swarm.");
+      return;
+    }
+
     if (!prompt.trim()) {
       setInfo("Enter a prompt for the swarm.");
       return;
@@ -308,12 +348,33 @@ export function Dashboard() {
           <p className="hero-copy">
             Control planner and worker agents, upload files up to 10 GB in chunks, and route analysis through OpenRouter from a single dashboard.
           </p>
+          <div className="status-grid">
+            <div className="status-item">
+              <span className={`status-dot ${health ? "ok" : ""}`} />
+              <span>{health?.service ?? "Service status pending"}</span>
+            </div>
+            <div className="status-item">
+              <span className={`status-dot ${isConfigured ? "ok" : "warn"}`} />
+              <span>{isConfigured ? "OpenRouter configured" : "OpenRouter API key required"}</span>
+            </div>
+          </div>
         </div>
         <div className="status-pill">{info}</div>
       </section>
 
       <section className="grid-layout">
         <div className="column">
+          {!isConfigured ? (
+            <div className="notice warning">
+              <strong>Chat is currently disabled.</strong>
+              <p>
+                The local service is running correctly, but OpenRouter requests are blocked until you paste an API key and click
+                {" "}
+                <strong>Save settings</strong>.
+              </p>
+            </div>
+          ) : null}
+
           <div className="card">
             <div className="card-header">
               <div>
@@ -728,10 +789,16 @@ export function Dashboard() {
                 <h2>Swarm chat</h2>
                 <p>Send tasks to the configured KIMI swarm and optionally bind the selected uploads as context.</p>
               </div>
-              <button className="button primary" onClick={() => void runSwarm()} disabled={isRunning}>
-                {isRunning ? "Running..." : "Run swarm"}
+              <button className="button primary" onClick={() => void runSwarm()} disabled={isRunning || !isConfigured}>
+                {!isConfigured ? "Configure OpenRouter" : isRunning ? "Running..." : "Run swarm"}
               </button>
             </div>
+
+            {!isConfigured ? (
+              <div className="notice subtle">
+                <strong>Action required:</strong> save an OpenRouter API key above, then return here to run the swarm.
+              </div>
+            ) : null}
 
             <label>
               Prompt

@@ -128,6 +128,36 @@ h1 {
   font-weight: 600;
 }
 
+.status-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted);
+}
+
+.status-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04);
+}
+
+.status-dot.ok {
+  background: #3ddc97;
+}
+
+.status-dot.warn {
+  background: #ffcc66;
+}
+
 .grid-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
@@ -147,6 +177,33 @@ h1 {
 
 .card {
   padding: 1.5rem;
+}
+
+.notice {
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.notice p,
+.notice strong {
+  margin: 0;
+}
+
+.notice p {
+  margin-top: 0.45rem;
+  color: var(--muted);
+}
+
+.notice.warning {
+  background: rgba(255, 204, 102, 0.08);
+  border-color: rgba(255, 204, 102, 0.28);
+}
+
+.notice.subtle {
+  margin-bottom: 1rem;
+  background: rgba(106, 163, 255, 0.08);
 }
 
 .card-header,
