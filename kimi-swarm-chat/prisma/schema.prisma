@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String   @default("")
+  model        String   @default("moonshotai/kimi-k2")
+  instructions String   @default("")
+  isActive     Boolean  @default(true)
+  avatar       String   @default("Bot")
+  color        String   @default("#6366f1")
+  sampling     Json
+  swarm        Json
+  functions    Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  chats ChatSession[]
+}
+
+model ChatSession {
+  id            String    @id @default(cuid())
+  title         String
+  activeAgentId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  agent         Agent?    @relation(fields: [activeAgentId], references: [id])
+  messages      ChatEntry[]
+}
+
+model ChatEntry {
+  id          String      @id @default(cuid())
+  chatId      String
+  role        String
+  content     String
+  agent       String?
+  agentColor  String?
+  attachments Json?
+  toolCalls   Json?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+  chat        ChatSession @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model FileAsset {
+  id           String   @id @default(cuid())
+  fileName     String
+  originalName String
+  mimeType     String
+  extension    String
+  size         BigInt
+  path         String
+  status       String   @default("uploaded")
+  extractedText String?
+  summary      String?
+  metadata     Json?
+  uploadedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Settings {
+  id        String   @id
+  payload   Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
