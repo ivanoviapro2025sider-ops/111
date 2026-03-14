@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
+  tool
+}
+
+enum FileStatus {
+  pending
+  uploading
+  uploaded
+  processed
+  failed
+}
+
+model Agent {
+  id           String          @id @default(cuid())
+  name         String          @unique
+  description  String?
+  model        String          @default("moonshotai/kimi-k2")
+  instructions String
+  isActive     Boolean         @default(true)
+  avatar       String          @default("🤖")
+  color        String          @default("#6366f1")
+  sampling     Json?
+  swarm        Json?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  functions    AgentFunction[]
+}
+
+model AgentFunction {
+  id            String  @id @default(cuid())
+  agentId        String
+  name           String
+  description    String
+  parameters     Json
+  implementation String
+  isHandoff      Boolean @default(false)
+  handoffTarget  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  title     String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id         String      @id @default(cuid())
+  chatId      String
+  role       MessageRole
+  content    String
+  agent      String?
+  agentColor String?
+  attachments Json?
+  toolCalls  Json?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  chat ChatSession @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt])
+}
+
+model UploadedFile {
+  id               String     @id @default(cuid())
+  originalName     String
+  storedName       String
+  mimeType         String
+  extension        String
+  size             BigInt
+  path             String
+  status           FileStatus @default(pending)
+  processingOutput String?
+  metadata         Json?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model GlobalSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
