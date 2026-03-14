@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { runSwarmStream } from "@/lib/swarm";
-import { serializeMessage } from "@/lib/serializers";
+import { serializeAgent, serializeMessage } from "@/lib/serializers";
 import { defaultSampling, defaultSwarm } from "@/types/agent";
 
 export const runtime = "nodejs";
@@ -87,25 +87,11 @@ export async function POST(request: Request) {
       },
     }));
 
-  const activeAgent = {
-    ...activeDbAgent,
-    sampling: activeDbAgent.sampling as typeof defaultSampling,
-    swarm: activeDbAgent.swarm as typeof defaultSwarm,
-    functions: activeDbAgent.functions as unknown[],
-    createdAt: activeDbAgent.createdAt.toISOString(),
-    updatedAt: activeDbAgent.updatedAt.toISOString(),
-  };
+  const activeAgent = serializeAgent(activeDbAgent);
 
   const handoffAgents = allAgents
     .filter((agent) => agent.id !== activeDbAgent.id)
-    .map((agent) => ({
-      ...agent,
-      sampling: agent.sampling as typeof defaultSampling,
-      swarm: agent.swarm as typeof defaultSwarm,
-      functions: agent.functions as unknown[],
-      createdAt: agent.createdAt.toISOString(),
-      updatedAt: agent.updatedAt.toISOString(),
-    }));
+    .map(serializeAgent);
 
   await db.message.create({
     data: {

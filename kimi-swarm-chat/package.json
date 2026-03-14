@@ -11,7 +11,7 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^7.5.0",
+    "@prisma/client": "^6.19.2",
     "busboy": "^1.6.0",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
@@ -27,7 +27,7 @@
     "openai": "^6.29.0",
     "papaparse": "^5.5.3",
     "pdf-parse": "^2.4.5",
-    "prisma": "^7.5.0",
+    "prisma": "^6.19.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
@@ -46,6 +46,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/multer": "^2.1.0",
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

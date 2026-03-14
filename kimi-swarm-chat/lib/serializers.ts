@@ -13,9 +13,9 @@ export function serializeAgent(agent: DbAgent): Agent {
     isActive: agent.isActive,
     avatar: agent.avatar,
     color: agent.color,
-    sampling: agent.sampling as Agent["sampling"],
-    swarm: agent.swarm as Agent["swarm"],
-    functions: agent.functions as Agent["functions"],
+    sampling: agent.sampling as unknown as Agent["sampling"],
+    swarm: agent.swarm as unknown as Agent["swarm"],
+    functions: agent.functions as unknown as Agent["functions"],
     createdAt: agent.createdAt.toISOString(),
     updatedAt: agent.updatedAt.toISOString(),
   };
@@ -29,7 +29,7 @@ export function serializeFile(file: DbFile): FileAttachment {
     size: Number(file.size),
     status: file.status as FileAttachment["status"],
     createdAt: file.createdAt.toISOString(),
-    metadata: (file.metadata || {}) as Record<string, unknown>,
+    metadata: (file.metadata || {}) as unknown as Record<string, unknown>,
   };
 }
 
@@ -41,6 +41,6 @@ export function serializeMessage(message: DbMessage): ChatMessage {
     agent: message.agent || undefined,
     agentColor: message.agentColor || undefined,
     timestamp: message.createdAt.toISOString(),
-    metadata: (message.metadata || undefined) as ChatMessage["metadata"],
+    metadata: (message.metadata || undefined) as unknown as ChatMessage["metadata"],
   };
 }

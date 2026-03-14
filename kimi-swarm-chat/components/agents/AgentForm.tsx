@@ -17,8 +17,10 @@ import { FunctionEditor } from "./FunctionEditor";
 interface AgentFormProps {
   initial?: Agent;
   allAgents: Agent[];
-  onSave: (payload: Omit<Agent, "id" | "createdAt" | "updatedAt"> & { id?: string }) => Promise<void>;
+  onSave: (payload: AgentFormPayload) => Promise<void>;
 }
+
+type AgentFormPayload = Omit<Agent, "id" | "createdAt" | "updatedAt"> & { id?: string };
 
 const defaultModels = [
   "moonshotai/kimi-k2",
@@ -27,9 +29,7 @@ const defaultModels = [
 ];
 
 export function AgentForm({ initial, allAgents, onSave }: AgentFormProps) {
-  const [form, setForm] = useState<
-    Omit<Agent, "createdAt" | "updatedAt"> & { id?: string }
-  >({
+  const [form, setForm] = useState<AgentFormPayload>({
     id: initial?.id,
     name: initial?.name || "",
     description: initial?.description || "",
@@ -47,7 +47,19 @@ export function AgentForm({ initial, allAgents, onSave }: AgentFormProps) {
 
   useEffect(() => {
     if (!initial) return;
-    setForm({ ...initial });
+    setForm({
+      id: initial.id,
+      name: initial.name,
+      description: initial.description,
+      model: initial.model,
+      instructions: initial.instructions,
+      isActive: initial.isActive,
+      avatar: initial.avatar,
+      color: initial.color,
+      sampling: initial.sampling,
+      swarm: initial.swarm,
+      functions: initial.functions,
+    });
   }, [initial]);
 
   return (

@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import mammoth from "mammoth";
 import Papa from "papaparse";
-import pdfParse from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import sharp from "sharp";
 import * as XLSX from "xlsx";
 import yaml from "js-yaml";
@@ -53,7 +53,9 @@ export async function extractFileText(filePath: string, mimeType?: string): Prom
   const fileBuffer = await readFile(filePath);
 
   if (ext === ".pdf") {
-    const parsed = await pdfParse(fileBuffer);
+    const parser = new PDFParse({ data: new Uint8Array(fileBuffer) });
+    const parsed = await parser.getText();
+    await parser.destroy();
     return parsed.text || "";
   }
 
