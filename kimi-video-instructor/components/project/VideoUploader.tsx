@@ -10,6 +10,7 @@ const CHUNK_SIZE = 5 * 1024 * 1024;
 
 interface UploadState {
   uploadId: string;
+  projectId?: string;
   file: File;
   chunkIndex: number;
   totalChunks: number;
@@ -26,10 +27,14 @@ export function VideoUploader({
   onComplete,
   onError,
   className,
+  projectName,
+  projectDescription,
 }: {
-  onComplete?: (uploadId: string, fileName: string) => void;
+  onComplete?: (uploadId: string, fileName: string, projectId?: string) => void;
   onError?: (error: Error) => void;
   className?: string;
+  projectName?: string;
+  projectDescription?: string;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -106,9 +111,10 @@ export function VideoUploader({
               }),
             });
             if (!res.ok) throw new Error('Failed to complete upload');
+            const completeData = await res.json();
             setUploadState(null);
             setFile(null);
-            onComplete?.(state.uploadId, state.file.name);
+            onComplete?.(state.uploadId, state.file.name, completeData.projectId);
           }
         } catch (err) {
           if ((err as Error).name === 'AbortError') return;
@@ -127,12 +133,16 @@ export function VideoUploader({
       setError(null);
       setFile(selectedFile);
 
+      const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
       const res = await fetch('/api/upload/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fileName: selectedFile.name,
           fileSize: selectedFile.size,
+          totalChunks,
+          name: projectName,
+          description: projectDescription,
         }),
       });
 
@@ -143,12 +153,12 @@ export function VideoUploader({
         return;
       }
 
-      const { uploadId } = await res.json();
-      const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
+      const { uploadId, projectId } = await res.json();
       const now = Date.now();
 
       const state: UploadState = {
         uploadId,
+        projectId,
         file: selectedFile,
         chunkIndex: 0,
         totalChunks,

@@ -63,13 +63,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </Link>
         </Button>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/projects/${project.id}/status`}>
+          <Link href={`/projects/${project.id}/processing`}>
             <Eye className="mr-2 h-4 w-4" />
             View Status
           </Link>
         </Button>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/projects/${project.id}/edit`}>
+          <Link href={`/projects/${project.id}/editor`}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </Link>

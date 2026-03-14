@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import prisma from '@/lib/db';
 import { initUpload } from '@/lib/chunked-upload';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { projectId, fileName, fileSize, mimeType, totalChunks } = body;
+    let { projectId, fileName, fileSize, mimeType, totalChunks, name, description } = body;
 
-    if (!projectId || !fileName || !fileSize || totalChunks == null) {
+    if (!fileName || !fileSize || totalChunks == null) {
       return NextResponse.json(
-        { error: 'projectId, fileName, fileSize, and totalChunks are required' },
+        { error: 'fileName, fileSize, and totalChunks are required' },
         { status: 400 }
       );
+    }
+
+    if (!projectId) {
+      const project = await prisma.project.create({
+        data: {
+          name: name || fileName.replace(/\.[^/.]+$/, ''),
+          description: description || null,
+          videoFileName: fileName,
+          status: 'uploading',
+        },
+      });
+      projectId = project.id;
     }
 
     const uploadId = uuidv4();

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Film, Home, FolderOpen, Settings, Menu, X } from 'lucide-react';
+import { Film, Home, FolderOpen, Settings, Menu, X, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/projects', label: 'Projects', icon: FolderOpen },
+  { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
