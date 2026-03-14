@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+ datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id                 String          @id @default(cuid())
+  name               String          @unique
+  description        String
+  model              String          @default("moonshotai/kimi-k2")
+  instructions       String
+  isActive           Boolean         @default(true)
+  avatar             String          @default("Bot")
+  color              String          @default("#6366f1")
+  temperature        Float           @default(1.0)
+  topP               Float           @default(1.0)
+  topK               Int             @default(0)
+  frequencyPenalty   Float           @default(0.0)
+  presencePenalty    Float           @default(0.0)
+  repetitionPenalty  Float           @default(1.0)
+  minP               Float           @default(0.0)
+  topA               Float           @default(0.0)
+  maxTokens          Int             @default(4096)
+  seed               Int?
+  stop               String          @default("[]")
+  responseFormat     String          @default("text")
+  verbosity          String          @default("medium")
+  maxTurns           Int?
+  executeTools       Boolean         @default(true)
+  stream             Boolean         @default(true)
+  debug              Boolean         @default(false)
+  contextVariables   String          @default("{}")
+  handoffTargetIds   String          @default("[]")
+  handoffConditions  String          @default("")
+  toolChoice         String          @default("auto")
+  parallelToolCalls  Boolean         @default(true)
+  functions          AgentFunction[]
+  chats              ChatSession[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model AgentFunction {
+  id             String   @id @default(cuid())
+  agentId        String
+  name           String
+  description    String
+  parameters     String   @default("{}")
+  implementation String
+  isHandoff      Boolean  @default(false)
+  handoffTarget  String?
+  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  title     String
+  agentId   String?
+  agent     Agent?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  sessionId   String
+  role        String
+  content     String
+  agent       String?
+  agentColor  String?
+  attachments String      @default("[]")
+  toolCalls   String      @default("[]")
+  isStreaming Boolean     @default(false)
+  metadata    String      @default("{}")
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+}
+
+model UploadedFile {
+  id            String   @id @default(cuid())
+  fileName      String
+  storedName    String
+  path          String
+  mimeType      String
+  size          String
+  status        String   @default("uploaded")
+  extractedText String?
+  summary       String?
+  metadata      String   @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model GlobalSettings {
+  id                     String   @id @default("global")
+  openRouterApiKey       String?
+  baseUrl                String   @default("https://openrouter.ai/api/v1")
+  httpReferer            String?
+  xTitle                 String   @default("KIMI Swarm Chat Service")
+  timeout                Int      @default(60000)
+  retryCount             Int      @default(2)
+  retryDelay             Int      @default(1000)
+  defaultModel           String   @default("moonshotai/kimi-k2")
+  defaultAgentId         String?
+  defaultTemperature     Float    @default(1.0)
+  defaultTopP            Float    @default(1.0)
+  defaultTopK            Int      @default(0)
+  defaultMaxTokens       Int      @default(4096)
+  defaultResponseFormat  String   @default("text")
+  defaultVerbosity       String   @default("medium")
+  defaultMaxTurns        Int      @default(12)
+  globalContextVariables String   @default("{}")
+  defaultDebug           Boolean  @default(false)
+  maxFileSize            String   @default("10737418240")
+  defaultFileStrategy    String   @default("chunked")
+  defaultChunkSize       Int      @default(5000000)
+  uploadDir              String   @default("./uploads")
+  autoCleanup            Boolean  @default(false)
+  theme                  String   @default("dark")
+  language               String   @default("ru")
+  fontSize               String   @default("md")
+  density                String   @default("comfortable")
+  showDebugInfo          Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}

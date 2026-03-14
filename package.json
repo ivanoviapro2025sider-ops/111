@@ -1,0 +1,65 @@
+{
+  "name": "kimi-swarm-chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ivanoviapro2025sider-ops/111.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ivanoviapro2025sider-ops/111/issues"
+  },
+  "homepage": "https://github.com/ivanoviapro2025sider-ops/111#readme",
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@prisma/client": "^7.5.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "busboy": "^1.6.0",
+    "cheerio": "^1.2.0",
+    "clsx": "^2.1.1",
+    "csv-parse": "^6.1.0",
+    "form-data-encoder": "^4.1.0",
+    "framer-motion": "^12.36.0",
+    "js-yaml": "^4.1.1",
+    "lucide-react": "^0.577.0",
+    "mammoth": "^1.12.0",
+    "next": "^16.1.6",
+    "openai": "^6.29.0",
+    "pdf-parse": "^2.4.5",
+    "prisma": "^7.5.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
+    "sharp": "^0.34.5",
+    "tailwind-merge": "^3.5.0",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.27",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.1.6",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3"
+  },
+  "private": true
+}

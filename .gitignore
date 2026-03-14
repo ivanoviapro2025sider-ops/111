@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+dist
+coverage
+.env
+.env.local
+!.env.example
+prisma/dev.db
+prisma/dev.db-journal
+uploads/*
+!uploads/.gitkeep
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
