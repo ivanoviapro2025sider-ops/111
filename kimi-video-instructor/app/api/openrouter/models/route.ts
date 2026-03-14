@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
+    const baseUrl = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
+    const modelsUrl = baseUrl.endsWith('/models') ? baseUrl : `${baseUrl}/models`;
     const response = await fetch(
-      process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1/models',
+      modelsUrl,
       {
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY || ''}`,
