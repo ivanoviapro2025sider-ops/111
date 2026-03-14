@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { createDefaultAgent } from "@/lib/defaults";
 
@@ -21,9 +22,9 @@ export async function POST(request: Request) {
     data: {
       ...defaults,
       ...body,
-      sampling: body.sampling ?? defaults.sampling,
-      swarm: body.swarm ?? defaults.swarm,
-      functions: body.functions ?? defaults.functions,
+      sampling: (body.sampling ?? defaults.sampling) as unknown as Prisma.InputJsonValue,
+      swarm: (body.swarm ?? defaults.swarm) as unknown as Prisma.InputJsonValue,
+      functions: (body.functions ?? defaults.functions) as unknown as Prisma.InputJsonValue,
     },
   });
 

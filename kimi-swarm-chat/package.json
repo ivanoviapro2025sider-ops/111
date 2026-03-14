@@ -46,6 +46,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/busboy": "^1.5.4",
+    "@types/js-yaml": "^4.0.9",
     "@types/multer": "^2.1.0",
     "@types/node": "^20",
     "@types/react": "^19",

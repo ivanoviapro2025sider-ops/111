@@ -7,18 +7,19 @@ import { FileList } from "@/components/files/FileList";
 import { FilePreview } from "@/components/files/FilePreview";
 import type { FileRecord } from "@/types/file";
 
-function normalizeFile(raw: any): FileRecord {
+function normalizeFile(raw: Record<string, unknown>): FileRecord {
   return {
-    ...raw,
+    ...(raw as unknown as FileRecord),
     size: Number(raw.size),
-    uploadedAt: new Date(raw.uploadedAt).toISOString(),
-    updatedAt: new Date(raw.updatedAt).toISOString(),
+    uploadedAt: new Date(String(raw.uploadedAt)).toISOString(),
+    updatedAt: new Date(String(raw.updatedAt)).toISOString(),
   };
 }
 
 export default function FilesPage() {
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [selected, setSelected] = useState<FileRecord>();
+  const selectedId = selected?.id;
 
   const fetchFiles = async () => {
     const response = await fetch("/api/files", { cache: "no-store" });
@@ -32,8 +33,22 @@ export default function FilesPage() {
   };
 
   useEffect(() => {
-    void fetchFiles();
-  }, []);
+    let active = true;
+    const run = async () => {
+      const response = await fetch("/api/files", { cache: "no-store" });
+      if (!response.ok || !active) return;
+      const data = (await response.json()) as Array<Record<string, unknown>>;
+      const mapped = data.map((item) => normalizeFile(item));
+      setFiles(mapped);
+      if (selectedId) {
+        setSelected(mapped.find((file) => file.id === selectedId));
+      }
+    };
+    void run();
+    return () => {
+      active = false;
+    };
+  }, [selectedId]);
 
   return (
     <main className="flex h-screen flex-col">

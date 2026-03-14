@@ -13,11 +13,11 @@ interface AgentStoreState {
   deleteAgent: (id: string) => Promise<void>;
 }
 
-function normalize(raw: any): Agent {
+function normalize(raw: Record<string, unknown>): Agent {
   return {
-    ...raw,
-    createdAt: new Date(raw.createdAt).toISOString(),
-    updatedAt: new Date(raw.updatedAt).toISOString(),
+    ...(raw as unknown as Agent),
+    createdAt: new Date(String(raw.createdAt)).toISOString(),
+    updatedAt: new Date(String(raw.updatedAt)).toISOString(),
   };
 }
 
@@ -30,7 +30,7 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
     try {
       const response = await fetch("/api/agents", { cache: "no-store" });
       const data = await response.json();
-      set({ agents: data.map(normalize), loading: false });
+      set({ agents: (data as Array<Record<string, unknown>>).map(normalize), loading: false });
     } catch (error) {
       set({
         loading: false,

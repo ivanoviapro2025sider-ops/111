@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { db } from "@/lib/db";
 import { createDefaultAgent } from "@/lib/defaults";
 import openrouter from "@/lib/openrouter";
@@ -12,7 +14,14 @@ async function ensureAtLeastOneAgent() {
   const count = await db.agent.count();
   if (count > 0) return;
   const defaults = createDefaultAgent("Agent A");
-  await db.agent.create({ data: defaults });
+  await db.agent.create({
+    data: {
+      ...defaults,
+      sampling: defaults.sampling as unknown as Prisma.InputJsonValue,
+      swarm: defaults.swarm as unknown as Prisma.InputJsonValue,
+      functions: defaults.functions as unknown as Prisma.InputJsonValue,
+    },
+  });
 }
 
 function toModelMessages(
@@ -20,13 +29,16 @@ function toModelMessages(
   history: Array<{ role: string; content: string }>,
   userMessage: string,
   fileContext: string,
-) {
+): ChatCompletionMessageParam[] {
+  const normalizedHistory: ChatCompletionMessageParam[] = history.map((item) => ({
+    role:
+      item.role === "assistant" || item.role === "system" ? item.role : "user",
+    content: item.content,
+  }));
+
   return [
     { role: "system", content: instructions },
-    ...history.map((item) => ({
-      role: item.role as "user" | "assistant" | "system",
-      content: item.content,
-    })),
+    ...normalizedHistory,
     ...(fileContext ? [{ role: "system" as const, content: fileContext }] : []),
     { role: "user" as const, content: userMessage },
   ];
@@ -95,7 +107,7 @@ export async function POST(request: Request) {
         chatId: chatSession.id,
         role: "user",
         content: body.message,
-        attachments: body.attachments ?? [],
+        attachments: (body.attachments ?? []) as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -117,6 +129,27 @@ export async function POST(request: Request) {
     const streamResponse = body.stream ?? activeAgent.swarm.stream ?? true;
     const model = activeAgent.model || DEFAULT_MODEL;
     const startedAt = Date.now();
+    const missingApiKey = !process.env.OPENROUTER_API_KEY;
+
+    if (missingApiKey && !streamResponse) {
+      const content =
+        "OPENROUTER_API_KEY не настроен. Добавьте ключ на странице Settings или в .env.local.";
+      const assistantEntry = await db.chatEntry.create({
+        data: {
+          chatId: chatSession.id,
+          role: "assistant",
+          content,
+          agent: activeAgent.name,
+          agentColor: activeAgent.color,
+          metadata: {
+            model,
+            processingTime: Date.now() - startedAt,
+            tokensUsed: 0,
+          } as unknown as Prisma.InputJsonValue,
+        },
+      });
+      return NextResponse.json({ chatId: chatSession.id, message: assistantEntry });
+    }
 
     if (!streamResponse) {
       const completion = await openrouter.chat.completions.create({
@@ -143,7 +176,7 @@ export async function POST(request: Request) {
             tokensUsed: completion.usage?.total_tokens ?? 0,
             handoffFrom: resolution.handoffs[0]?.from,
             handoffTo: resolution.handoffs[0]?.to,
-          },
+          } as unknown as Prisma.InputJsonValue,
         },
       });
 
@@ -154,7 +187,9 @@ export async function POST(request: Request) {
     let assistantText = "";
     let tokenCount = 0;
 
-    const completionStream = await openrouter.chat.completions.create({
+    const completionStream = missingApiKey
+      ? null
+      : await openrouter.chat.completions.create({
       model,
       messages: modelMessages,
       stream: true,
@@ -184,12 +219,18 @@ export async function POST(request: Request) {
         }
 
         try {
-          for await (const chunk of completionStream) {
-            const delta = chunk.choices?.[0]?.delta?.content ?? "";
-            if (!delta) continue;
-            assistantText += delta;
-            tokenCount += 1;
-            send({ type: "token", content: delta });
+          if (!completionStream) {
+            assistantText =
+              "OPENROUTER_API_KEY не настроен. Добавьте ключ на странице Settings или в .env.local.";
+            send({ type: "token", content: assistantText });
+          } else {
+            for await (const chunk of completionStream) {
+              const delta = chunk.choices?.[0]?.delta?.content ?? "";
+              if (!delta) continue;
+              assistantText += delta;
+              tokenCount += 1;
+              send({ type: "token", content: delta });
+            }
           }
 
           const message = await db.chatEntry.create({
@@ -205,7 +246,7 @@ export async function POST(request: Request) {
                 tokensUsed: tokenCount,
                 handoffFrom: resolution.handoffs[0]?.from,
                 handoffTo: resolution.handoffs[0]?.to,
-              },
+              } as unknown as Prisma.InputJsonValue,
             },
           });
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { processFileWithStrategy } from "@/lib/file-processor";
 import { DEFAULT_MODEL } from "@/lib/utils";
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
           chunkCount: processed.chunks.length,
           chunkSize: options.chunkSize,
           chunkOverlap: options.chunkOverlap,
-        },
+        } as unknown as Prisma.InputJsonValue,
       },
     });
 

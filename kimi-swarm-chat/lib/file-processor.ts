@@ -4,7 +4,7 @@ import { extname } from "node:path";
 import csv from "csv-parser";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import YAML from "js-yaml";
 import { XMLParser } from "fast-xml-parser";
 import * as cheerio from "cheerio";
@@ -124,7 +124,9 @@ export async function extractTextFromFile(path: string): Promise<ProcessedFileRe
 
   if (extension === ".pdf") {
     const data = await readFile(path);
-    const result = await pdf(data);
+    const parser = new PDFParse({ data });
+    const result = await parser.getText();
+    await parser.destroy();
     return { extension, extractedText: result.text, chunks: [] };
   }
 
@@ -150,7 +152,12 @@ export async function extractTextFromFile(path: string): Promise<ProcessedFileRe
   if ([".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".svg"].includes(extension)) {
     const metadata = await sharp(path).metadata();
     const text = `Image file (${extension}) - width: ${metadata.width}, height: ${metadata.height}, format: ${metadata.format}`;
-    return { extension, extractedText: text, chunks: [], metadata };
+    return {
+      extension,
+      extractedText: text,
+      chunks: [],
+      metadata: metadata as unknown as Record<string, unknown>,
+    };
   }
 
   if ([".mp3", ".wav", ".ogg", ".flac", ".m4a", ".mp4", ".webm", ".avi", ".mkv"].includes(extension)) {

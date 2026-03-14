@@ -27,6 +27,8 @@
 !/uploads/.gitkeep
 /prisma/dev.db
 /prisma/dev.db-journal
+/prisma/prisma/dev.db
+/prisma/prisma/dev.db-journal
 
 # debug
 npm-debug.log*

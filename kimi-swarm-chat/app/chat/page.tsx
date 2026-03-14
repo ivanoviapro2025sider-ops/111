@@ -31,14 +31,13 @@ export default function ChatPage() {
       const response = await fetch("/api/files", { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
-        setFiles(
-          data.map((item: any) => ({
-            ...item,
-            size: Number(item.size),
-            uploadedAt: new Date(item.uploadedAt).toISOString(),
-            updatedAt: new Date(item.updatedAt).toISOString(),
-          })),
-        );
+        const mapped = (data as Array<Record<string, unknown>>).map((item) => ({
+          ...(item as Record<string, unknown>),
+          size: Number(item.size),
+          uploadedAt: new Date(String(item.uploadedAt)).toISOString(),
+          updatedAt: new Date(String(item.updatedAt)).toISOString(),
+        })) as FileRecord[];
+        setFiles(mapped);
       }
     })();
   }, [fetchChats, fetchAgents]);
@@ -52,7 +51,7 @@ export default function ChatPage() {
       return agents.find((agent) => agent.id === activeSession.activeAgentId);
     }
     return agents[0];
-  }, [activeSession?.activeAgentId, agents]);
+  }, [activeSession, agents]);
 
   return (
     <main className="flex h-screen flex-col">

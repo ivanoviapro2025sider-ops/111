@@ -3,7 +3,7 @@
 import type { InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {}
+type SwitchProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type">;
 
 export function Switch({ className, checked, ...props }: SwitchProps) {
   return (

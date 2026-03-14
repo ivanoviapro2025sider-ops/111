@@ -20,33 +20,44 @@ interface ChatState {
   }) => Promise<void>;
 }
 
-function normalizeChat(raw: any): ChatSession {
+function normalizeChat(raw: Record<string, unknown>): ChatSession {
   return {
-    id: raw.id,
-    title: raw.title,
-    createdAt: new Date(raw.createdAt).toISOString(),
-    updatedAt: new Date(raw.updatedAt).toISOString(),
-    activeAgentId: raw.activeAgentId ?? undefined,
+    id: String(raw.id),
+    title: String(raw.title),
+    createdAt: new Date(String(raw.createdAt)).toISOString(),
+    updatedAt: new Date(String(raw.updatedAt)).toISOString(),
+    activeAgentId: (raw.activeAgentId as string | undefined) ?? undefined,
     activeAgent: raw.agent
       ? {
-          ...raw.agent,
-          createdAt: new Date(raw.agent.createdAt).toISOString(),
-          updatedAt: new Date(raw.agent.updatedAt).toISOString(),
-        }
+          ...(raw.agent as Record<string, unknown>),
+          createdAt: new Date(
+            String((raw.agent as Record<string, unknown>).createdAt),
+          ).toISOString(),
+          updatedAt: new Date(
+            String((raw.agent as Record<string, unknown>).updatedAt),
+          ).toISOString(),
+        } as ChatSession["activeAgent"]
       : undefined,
-    messages: (raw.messages ?? []).map((message: any) => ({
-      id: message.id,
-      role: message.role,
-      content: message.content,
-      agent: message.agent ?? undefined,
-      agentColor: message.agentColor ?? undefined,
-      timestamp: new Date(message.createdAt).toISOString(),
-      attachments: message.attachments ?? undefined,
-      toolCalls: message.toolCalls ?? undefined,
-      metadata: message.metadata ?? undefined,
-      isStreaming: false,
-    })),
+    messages: ((raw.messages as Array<Record<string, unknown>> | undefined) ?? []).map(
+      (message) => ({
+        id: String(message.id),
+        role: message.role as "user" | "assistant" | "system" | "tool",
+        content: String(message.content ?? ""),
+        agent: (message.agent as string | undefined) ?? undefined,
+        agentColor: (message.agentColor as string | undefined) ?? undefined,
+        timestamp: new Date(String(message.createdAt)).toISOString(),
+        attachments: (message.attachments as ChatMessage["attachments"]) ?? undefined,
+        toolCalls: (message.toolCalls as ChatMessage["toolCalls"]) ?? undefined,
+        metadata: (message.metadata as ChatMessage["metadata"]) ?? undefined,
+        isStreaming: false,
+      }),
+    ),
   };
+}
+
+function normalizeChats(raw: unknown): ChatSession[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((chat) => normalizeChat(chat as Record<string, unknown>));
 }
 
 function withMessage(
@@ -88,7 +99,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const response = await fetch("/api/chats", { cache: "no-store" });
       const data = await response.json();
-      const sessions = data.map(normalizeChat);
+      const sessions = normalizeChats(data);
       set((state) => ({
         sessions,
         activeChatId: state.activeChatId ?? sessions[0]?.id,
@@ -208,18 +219,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
           }
           if (!dataLine) continue;
 
-          const data = JSON.parse(dataLine);
+          const data = JSON.parse(dataLine) as Record<string, unknown>;
 
           if (eventName === "agent") {
-            resultingChatId = data.chatId ?? resultingChatId;
+            resultingChatId = String(data.chatId ?? resultingChatId);
           } else if (eventName === "handoff") {
             set((prev) => ({
               sessions: updateMessage(prev.sessions, activeChatId, assistantMessageId, (existing) => ({
                 ...existing,
                 metadata: {
                   ...(existing.metadata ?? {}),
-                  handoffFrom: data.from,
-                  handoffTo: data.to,
+                  handoffFrom: String(data.from ?? ""),
+                  handoffTo: String(data.to ?? ""),
                 },
               })),
             }));
@@ -227,13 +238,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
             set((prev) => ({
               sessions: updateMessage(prev.sessions, activeChatId, assistantMessageId, (existing) => ({
                 ...existing,
-                content: existing.content + (data.content ?? ""),
+                content: existing.content + String(data.content ?? ""),
               })),
             }));
           } else if (data.type === "done") {
-            resultingChatId = data.chatId ?? resultingChatId;
+            resultingChatId = String(data.chatId ?? resultingChatId);
           } else if (data.type === "error") {
-            throw new Error(data.message ?? "Streaming error");
+            throw new Error(String(data.message ?? "Streaming error"));
           }
         }
       }
