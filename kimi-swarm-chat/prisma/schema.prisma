@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String
+  model        String
+  instructions String
+  isActive     Boolean  @default(true)
+  avatar       String   @default("🤖")
+  color        String   @default("#6366f1")
+  sampling     Json
+  swarm        Json
+  functions    Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Chat {
+  id        String    @id @default(cuid())
+  title     String
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  chatId     String
+  role       String
+  content    String
+  agent      String?
+  agentColor String?
+  metadata   Json?
+  chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([chatId, createdAt])
+}
+
+model UploadedFile {
+  id           String   @id @default(cuid())
+  originalName String
+  storedName   String
+  mimeType     String
+  size         BigInt
+  status       String   @default("uploaded")
+  path         String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id
+  payload   Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
