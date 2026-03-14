@@ -17,9 +17,12 @@ export default function FilesPage() {
 
   const fetchFiles = async () => {
     try {
-      const res = await fetch('/api/settings?type=files');
-      setLoading(false);
-    } catch {
+      const res = await fetch('/api/files');
+      const data = await res.json();
+      if (data.files) setFiles(data.files);
+    } catch (e) {
+      console.error('Failed to fetch files:', e);
+    } finally {
       setLoading(false);
     }
   };

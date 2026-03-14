@@ -9,8 +9,9 @@ import { StreamingMessage } from './StreamingMessage';
 import { AgentIndicator } from './AgentIndicator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, MessageSquarePlus } from 'lucide-react';
+import { Bot, MessageSquarePlus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function ChatWindow() {
   const {
@@ -166,6 +167,33 @@ export function ChatWindow() {
     [currentChatId, currentChat, selectedAgentId, addMessage, addChat, setCurrentChat, setLoading, setStreaming, appendStreamContent, resetStreamContent, setStreamingAgent, streamingAgent, streamingAgentColor]
   );
 
+  const handleExport = async (format: 'json' | 'markdown' | 'txt') => {
+    if (!currentChatId) return;
+    try {
+      const res = await fetch(`/api/chat/export?chatId=${currentChatId}&format=${format}`);
+      if (format === 'json') {
+        const data = await res.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat-${currentChatId}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat-${currentChatId}.${format === 'markdown' ? 'md' : 'txt'}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      console.error('Export failed:', e);
+    }
+  };
+
   const handleNewChat = async () => {
     try {
       const res = await fetch('/api/chat', {
@@ -250,6 +278,16 @@ export function ChatWindow() {
               </SelectContent>
             </Select>
           )}
+        </div>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleExport('json')}>
+                <Download className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export as JSON</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
