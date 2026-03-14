@@ -1,4 +1,4 @@
-import type { Agent, AgentFunction } from '@prisma/client';
+import type { Agent, AgentFunction } from '@/generated/prisma';
 import { prisma } from '@/lib/db';
 import { interpolateTemplate, tryParseJson } from '@/lib/utils';
 import type { FileProcessingOptions } from '@/types/file';

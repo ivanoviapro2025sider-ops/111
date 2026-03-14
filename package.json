@@ -10,7 +10,8 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push"
+    "prisma:push": "prisma db push",
+    "postinstall": "prisma generate"
   },
   "repository": {
     "type": "git",
@@ -25,8 +26,10 @@
   "homepage": "https://github.com/ivanoviapro2025sider-ops/111#readme",
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@prisma/adapter-better-sqlite3": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "@tailwindcss/postcss": "^4.2.1",
+    "better-sqlite3": "^12.8.0",
     "busboy": "^1.6.0",
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",

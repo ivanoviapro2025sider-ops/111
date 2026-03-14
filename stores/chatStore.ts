@@ -90,13 +90,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const { value, done } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      const events = buffer.split('
-
-');
+      const events = buffer.split('\n\n');
       buffer = events.pop() ?? '';
       for (const block of events) {
-        const lines = block.split('
-');
+        const lines = block.split('\n');
         const eventLine = lines.find((line) => line.startsWith('event:'));
         const dataLine = lines.filter((line) => line.startsWith('data:')).map((line) => line.slice(5).trim()).join('');
         if (eventLine) applyEvent(eventLine.slice(6).trim(), dataLine);

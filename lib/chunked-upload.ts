@@ -51,12 +51,12 @@ export async function assembleUpload(uploadId: string, fileName: string, totalCh
     const chunkPath = path.join(dir, `${index}.part`);
     const data = await fs.readFile(chunkPath);
     await new Promise<void>((resolve, reject) => {
-      writer.write(data, (error) => (error ? reject(error) : resolve()));
+      writer.write(data, (error?: Error | null) => (error ? reject(error) : resolve()));
     });
   }
 
   await new Promise<void>((resolve, reject) => {
-    writer.end((error) => (error ? reject(error) : resolve()));
+    writer.end((error?: Error | null) => (error ? reject(error) : resolve()));
   });
 
   const stats = await fs.stat(targetPath);

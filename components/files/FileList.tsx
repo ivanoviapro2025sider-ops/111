@@ -17,7 +17,12 @@ export function FileList() {
     const data = await response.json();
     setFiles(data.files ?? []);
   };
-  useEffect(() => { void loadFiles(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadFiles();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.4fr,0.9fr]">

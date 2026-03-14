@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { Bot, Files, MessageSquare, Settings, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,7 @@ const items = [
   { href: '/agents', label: 'Agents', icon: Users },
   { href: '/files', label: 'Files', icon: Files },
   { href: '/settings', label: 'Settings', icon: Settings },
-];
+] satisfies Array<{ href: Route; label: string; icon: typeof MessageSquare }>;
 
 export function Navigation() {
   const pathname = usePathname();

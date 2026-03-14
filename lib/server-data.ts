@@ -1,4 +1,11 @@
-import type { Agent, AgentFunction, ChatMessage as PrismaMessage, ChatSession, GlobalSettings, UploadedFile } from '@prisma/client';
+import type {
+  Agent,
+  AgentFunction,
+  ChatMessage as PrismaMessage,
+  ChatSession,
+  GlobalSettings,
+  UploadedFile,
+} from '@/generated/prisma';
 import type { AgentConfig } from '@/types/agent';
 import type { ChatMessage, ChatSession as ChatSessionDto } from '@/types/chat';
 import type { UploadedFileRecord } from '@/types/file';
@@ -36,7 +43,15 @@ export function serializeAgent(agent: Agent & { functions?: AgentFunction[] }): 
     handoffConditions: agent.handoffConditions,
     toolChoice: agent.toolChoice as AgentConfig['toolChoice'],
     parallelToolCalls: agent.parallelToolCalls,
-    functions: (agent.functions ?? []).map((fn) => ({ id: fn.id, name: fn.name, description: fn.description, parameters: tryParseJson<Record<string, unknown>>(fn.parameters, {}), implementation: fn.implementation, isHandoff: fn.isHandoff, handoffTarget: fn.handoffTarget })),
+    functions: (agent.functions ?? []).map((fn: AgentFunction) => ({
+      id: fn.id,
+      name: fn.name,
+      description: fn.description,
+      parameters: tryParseJson<Record<string, unknown>>(fn.parameters, {}),
+      implementation: fn.implementation,
+      isHandoff: fn.isHandoff,
+      handoffTarget: fn.handoffTarget,
+    })),
     createdAt: agent.createdAt.toISOString(),
     updatedAt: agent.updatedAt.toISOString(),
   };
