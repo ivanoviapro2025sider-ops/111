@@ -200,6 +200,7 @@ class ObjectInfo:
     based_on: List[str] = field(default_factory=list)
     procedures: List[BSLProcedure] = field(default_factory=list)
     bsl_calls: List[BSLCall] = field(default_factory=list)
+    bsl_meta_refs: List[BSLQueryRef] = field(default_factory=list)
     bsl_query_refs: List[BSLQueryRef] = field(default_factory=list)
     handler: str = ""
     source_types: List[str] = field(default_factory=list)
