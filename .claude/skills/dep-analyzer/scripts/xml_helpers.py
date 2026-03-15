@@ -194,18 +194,24 @@ def parse_types_from_element(type_container: Any) -> List[Dict[str, str]]:
     seen: set[str] = set()
 
     candidates: List[Any] = []
-    if hasattr(type_container, "tag") and str(type_container.tag).endswith("Type"):
+    nested_types = get_xml_elements(type_container, ".//v8:Type", NSMAP)
+    if not nested_types:
+        nested_types = get_xml_elements(type_container, ".//*[local-name()='Type']")
+
+    # Если в контейнере нет вложенных Type-элементов, пытаемся распарсить его напрямую.
+    if not nested_types and hasattr(type_container, "tag") and str(type_container.tag).endswith("Type"):
         candidates.append(type_container)
+    else:
+        candidates.extend(nested_types)
 
-    candidates.extend(get_xml_elements(type_container, ".//v8:Type", NSMAP))
-    candidates.extend(get_xml_elements(type_container, ".//*[local-name()='Type']"))
-
-    raw_text = _extract_type_raw_value(type_container)
-    if raw_text:
-        for chunk in re.split(r"[;,]", raw_text):
-            chunk = chunk.strip()
-            if chunk:
-                candidates.append(chunk)
+    # Фоллбэк для текстового контейнера без дочерних Type
+    if not nested_types:
+        raw_text = _extract_type_raw_value(type_container)
+        if raw_text:
+            for chunk in re.split(r"[;,]", raw_text):
+                chunk = chunk.strip()
+                if chunk:
+                    candidates.append(chunk)
 
     for candidate in candidates:
         parsed = parse_type_value(candidate)
