@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 from models import AttributeInfo, ObjectInfo, ReferenceInfo, TabularSectionInfo, TypeRef
 from xml_helpers import get_xml_elements, get_xml_text, parse_types_from_element, parse_xml_file
@@ -32,16 +32,6 @@ def _guess_main_xml(obj: ObjectInfo) -> Optional[Path]:
         if candidate.is_file():
             return candidate
     return None
-
-
-def _iter_attribute_nodes(root, tabular_section: str = "") -> Iterable:
-    if tabular_section:
-        return get_xml_elements(
-            root,
-            ".//*[local-name()='TabularSection' and ./*[local-name()='Name' and text()=$section]]//*[local-name()='Attribute']",
-            nsmap={**{}, "section": tabular_section},  # placeholder to keep signature stable
-        )
-    return get_xml_elements(root, ".//*[local-name()='Attributes']/*[local-name()='Attribute']")
 
 
 def _extract_types(type_parent) -> List[TypeRef]:
