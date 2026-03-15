@@ -164,23 +164,20 @@ def parse_types_from_element(type_container: Any) -> List[Dict[str, str]]:
         return []
 
     parsed: List[Dict[str, str]] = []
+    local_name = ""
+    if hasattr(type_container, "tag") and isinstance(type_container.tag, str):
+        local_name = type_container.tag.split("}")[-1]
 
-    # 1) Direct <v8:Type> descendants.
-    for type_element in get_xml_elements(type_container, ".//v8:Type"):
-        value = parse_type_value(type_element)
-        if value:
-            parsed.append(value)
-
-    # 2) Some exports use bare tags without namespace.
-    for type_element in get_xml_elements(type_container, ".//*[local-name()='Type']"):
-        value = parse_type_value(type_element)
-        if value:
-            parsed.append(value)
-
-    # 3) If the container itself is a type node.
-    self_value = parse_type_value(type_container)
-    if self_value:
-        parsed.append(self_value)
+    if local_name == "Type":
+        self_value = parse_type_value(type_container)
+        if self_value:
+            parsed.append(self_value)
+    else:
+        # TypeSet or generic container: parse nested type nodes only.
+        for type_element in get_xml_elements(type_container, ".//*[local-name()='Type']"):
+            value = parse_type_value(type_element)
+            if value:
+                parsed.append(value)
 
     dedup: Dict[str, Dict[str, str]] = {}
     for item in parsed:
