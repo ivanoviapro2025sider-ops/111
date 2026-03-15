@@ -101,11 +101,7 @@ _QUERY_TYPE_MAP = {
 }
 
 _RE_QUERY_BLOCK = re.compile(
-    r"""(?:"""
-    r"""(?:Новый\s+Запрос|New\s+Query)\s*[;(]"""
-    r"""|"""
-    r"""\.(?:Текст|Text)\s*=\s*")"""
-    r""")""",
+    r'(?:(?:Новый\s+Запрос|New\s+Query)\s*[;(]|\.(?:Текст|Text)\s*=\s*")',
     re.IGNORECASE,
 )
 
