@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
@@ -57,7 +58,11 @@ def _iter_bsl_files(object_path: str) -> Iterable[Path]:
 
 def analyze_bsl(graph) -> None:
     paths = [obj.path for obj in graph.objects.values() if obj.path]
-    config_root = Path(paths[0]).parents[1] if paths else Path(".")
+    if paths:
+        normalized = [str(Path(p).resolve()) for p in paths]
+        config_root = Path(os.path.commonpath(normalized))
+    else:
+        config_root = Path(".")
 
     for key, obj in graph.objects.items():
         procedures: List[BSLProcedure] = []
