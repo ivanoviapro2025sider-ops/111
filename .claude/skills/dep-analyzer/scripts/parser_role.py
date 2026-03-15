@@ -9,7 +9,7 @@ from typing import Dict, Iterable, List
 
 from models import ObjectInfo, ObjectRights, RLSTemplate, RightInfo, RoleInfo
 from scanner import get_xml_text, load_object_xml, parse_boolean, resolve_object_xml_path
-from xml_helpers import NSMAP_ROLES, parse_xml_file
+from xml_helpers import parse_xml_file
 
 
 OBJECT_PATTERN = re.compile(
@@ -57,7 +57,7 @@ def _string_values(element) -> List[str]:
     if element.text and element.text.strip():
         values.append(element.text.strip())
     values.extend(str(value).strip() for value in element.attrib.values() if str(value).strip())
-    for child in element.iterdescendants():
+    for child in element:
         if child.text and child.text.strip():
             values.append(child.text.strip())
         values.extend(str(value).strip() for value in child.attrib.values() if str(value).strip())
@@ -88,6 +88,10 @@ def _extract_rights_from_root(root) -> List[ObjectRights]:
 
     for element in root.iter():
         local = _local_name(str(element.tag))
+        if local.lower() not in {"entry", "right", "objectright", "permission", "rightvalue"} and not any(
+            key in element.attrib for key in ("right", "Right", "object", "Object", "value", "Value")
+        ):
+            continue
         values = _string_values(element)
         blob = " ".join(values)
         objects = [f"{match.group(1)}.{match.group(2)}" for match in OBJECT_PATTERN.finditer(blob)]
