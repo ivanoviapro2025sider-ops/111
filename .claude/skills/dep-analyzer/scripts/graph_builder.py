@@ -36,10 +36,18 @@ def _build_reference_edges(graph: DependencyGraph, obj_info: ObjectInfo):
     """Создать рёбра из ссылок (references) объекта."""
     source_key = get_full_object_key(obj_info.obj_type, obj_info.name)
 
+    movement_targets = set()
+    if obj_info.obj_type == "Document":
+        for mr in obj_info.movement_registers:
+            movement_targets.add(mr)
+
     for ref in obj_info.references:
         target_key = get_full_object_key(ref.target_type, ref.target_name)
 
         if target_key not in graph.objects:
+            continue
+
+        if ref.source_attribute == "RegisterRecords" and target_key in movement_targets:
             continue
 
         kind = _resolve_edge_kind(obj_info.obj_type, ref)

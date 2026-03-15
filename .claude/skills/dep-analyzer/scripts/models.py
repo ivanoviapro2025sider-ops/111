@@ -256,6 +256,7 @@ class DependencyGraph:
         """
         visited: Set[str] = set()
         result: List[Tuple[Edge, int]] = []
+        seen_edges: Set[Tuple[str, str, str]] = set()
         queue: List[Tuple[str, int]] = [(start, 0)]
 
         while queue:
@@ -271,6 +272,10 @@ class DependencyGraph:
                 edges += self.get_edges_to(current)
 
             for edge in edges:
+                edge_key = (edge.source, edge.target, edge.kind.value)
+                if edge_key in seen_edges:
+                    continue
+                seen_edges.add(edge_key)
                 result.append((edge, level + 1))
                 next_node = edge.target if edge.source == current else edge.source
                 if next_node not in visited:
