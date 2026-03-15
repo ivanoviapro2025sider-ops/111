@@ -198,8 +198,11 @@ def parse_types_from_element(type_container: Any) -> List[Dict[str, str]]:
 
     elements: List[Any] = []
     if isinstance(type_container, etree._Element):
-        elements.append(type_container)
-        elements.extend(type_container.xpath(".//*[local-name()='Type' or local-name()='TypeSet']"))
+        nested_types = type_container.xpath(".//*[local-name()='Type' or local-name()='TypeSet']")
+        if nested_types:
+            elements.extend(nested_types)
+        else:
+            elements.append(type_container)
     else:
         elements.append(type_container)
 
